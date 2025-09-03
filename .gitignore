@@ -1,0 +1,24 @@
+# dependencies / build
+/vendor/
+node_modules/
+composer.phar
+
+# env & secrets
+.env
+.env.*.local
+*.key
+
+# caches / logs
+storage/
+*.log
+*.cache
+
+# IDE/Editor
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Cursor/VSCode servers
+.cursor/
+.vscode-server/

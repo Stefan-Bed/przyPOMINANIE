@@ -1,0 +1,28 @@
+aplikacja w technologi php, serwer nginx
+katalgo aplikacji:
+/var/www/aplikacje/przyPOMINANIE
+
+
+1) Połączenie się z bazą
+   - hasło do bazy zapisane w pliku szyfrowanym
+3) lista dokumentów nie rozliczonych
+4) wysyłka przypomnienia dokumentów nierozliczonych
+
+
+tabela: DOKUMENT_HANDLOWY
+Kolumny:
+POZOSTALO_WAL
+ROZLICZONY
+ID_DOKUMENTU_HANDLOWEGO
+ID_MAGAZYNU
+NUMER
+FORMA_PLATNOSCI
+DATA_WYSTAWIENIA
+ID_KONTRAHENTA
+TERMIN_PLAT
+ROZLICZONY
+
+tabela: KONTRAHENT
+kolumny:
+ID_KONTRAHENTA
+NAZWA
