@@ -106,8 +106,22 @@ $hasConfig = is_file($secretKeyPath) && is_file($encPath);
         <?php if (!$rows): ?>
             <p class="muted" style="margin-top:1rem">Brak wyników.</p>
         <?php else: ?>
+            <?php 
+                // Funkcja formatowania waluty PLN
+                function formatPLN($amount) {
+                    $num = (float)($amount ?? 0);
+                    return number_format($num, 2, ',', ' ') . ' zł';
+                }
+            ?>
             <?php foreach ($grouped as $kontrahentId => $kontrahentRows): ?>
-                <?php $firstRow = $kontrahentRows[0]; ?>
+                <?php 
+                    $firstRow = $kontrahentRows[0];
+                    // Oblicz sumę POZOSTALO dla grupy
+                    $sumaPozostalo = 0;
+                    foreach ($kontrahentRows as $row) {
+                        $sumaPozostalo += (float)($row['POZOSTALO'] ?? 0);
+                    }
+                ?>
                 <div style="margin-top: 2rem;">
                     <h3 style="background:#f8f9fa; padding:.75rem; border-radius:8px; margin:0 0 .5rem 0; border-left:4px solid #007bff;">
                         <?= htmlspecialchars((string)($firstRow['KONTRAHENT_NAZWA'] ?? 'Brak nazwy'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
@@ -120,18 +134,28 @@ $hasConfig = is_file($secretKeyPath) && is_file($encPath);
                                 <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem; background:#fafafa;">NUMER</th>
                                 <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem; background:#fafafa;">FORMA_PLATNOSCI</th>
                                 <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem; background:#fafafa;">TERMIN_PLAT</th>
+                                <th style="text-align:center; border-bottom:1px solid #ddd; padding:.5rem; background:#fafafa;">DNI PO TERMINIE</th>
                                 <th style="text-align:right; border-bottom:1px solid #ddd; padding:.5rem; background:#fafafa;">POZOSTALO</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($kontrahentRows as $r): ?>
+                                <?php 
+                                    $dniPoTerminie = (int)($r['DNI_PO_TERMINIE'] ?? 0);
+                                    $kolorDni = $dniPoTerminie > 0 ? 'color:#d73527; font-weight:bold;' : 'color:#28a745;';
+                                ?>
                                 <tr>
                                     <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['NUMER'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
                                     <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['FORMA_PLATNOSCI'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
                                     <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['TERMIN_PLAT'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
-                                    <td style="border-bottom:1px solid #f0f0f0; padding:.5rem; text-align:right"><?= htmlspecialchars((string)($r['POZOSTALO'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
+                                    <td style="border-bottom:1px solid #f0f0f0; padding:.5rem; text-align:center; font-family:monospace; <?= $kolorDni ?>"><?= $dniPoTerminie ?></td>
+                                    <td style="border-bottom:1px solid #f0f0f0; padding:.5rem; text-align:right; font-family:monospace"><?= formatPLN($r['POZOSTALO']) ?></td>
                                 </tr>
                             <?php endforeach; ?>
+                            <tr>
+                                <td colspan="4" style="border-top:2px solid #007bff; padding:.75rem; font-weight:bold; background:#f8f9fa;">RAZEM:</td>
+                                <td style="border-top:2px solid #007bff; padding:.75rem; text-align:right; font-weight:bold; background:#f8f9fa; font-family:monospace; color:#007bff;"><?= formatPLN($sumaPozostalo) ?></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
