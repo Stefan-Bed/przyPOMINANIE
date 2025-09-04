@@ -94,31 +94,49 @@ $hasConfig = is_file($secretKeyPath) && is_file($encPath);
     <?php if ($error): ?>
         <p class="muted">Błąd połączenia/zapytania: <?= htmlspecialchars($error, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></p>
     <?php else: ?>
-        <table style="width:100%; border-collapse: collapse; margin-top:1rem">
-            <thead>
-                <tr>
-                    <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem">KONTRAHENT_NAZWA</th>
-                    <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem">NUMER</th>
-                    <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem">FORMA_PLATNOSCI</th>
-                    <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem">TERMIN_PLAT</th>
-                    <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem">POZOSTALO</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($rows as $r): ?>
-                    <tr>
-                        <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['KONTRAHENT_NAZWA'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
-                        <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['NUMER'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
-                        <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['FORMA_PLATNOSCI'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
-                        <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['TERMIN_PLAT'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
-                        <td style="border-bottom:1px solid #f0f0f0; padding:.5rem; text-align:right"><?= htmlspecialchars((string)($r['POZOSTALO'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
-                    </tr>
-                <?php endforeach; ?>
-                <?php if (!$rows): ?>
-                    <tr><td colspan="5" class="muted" style="padding:.75rem">Brak wyników.</td></tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+        <?php
+            // Grupowanie wyników po ID_KONTRAHENTA
+            $grouped = [];
+            foreach ($rows as $row) {
+                $kontrahentId = $row['ID_KONTRAHENTA'] ?? 'NULL';
+                $grouped[$kontrahentId][] = $row;
+            }
+        ?>
+        
+        <?php if (!$rows): ?>
+            <p class="muted" style="margin-top:1rem">Brak wyników.</p>
+        <?php else: ?>
+            <?php foreach ($grouped as $kontrahentId => $kontrahentRows): ?>
+                <?php $firstRow = $kontrahentRows[0]; ?>
+                <div style="margin-top: 2rem;">
+                    <h3 style="background:#f8f9fa; padding:.75rem; border-radius:8px; margin:0 0 .5rem 0; border-left:4px solid #007bff;">
+                        <?= htmlspecialchars((string)($firstRow['KONTRAHENT_NAZWA'] ?? 'Brak nazwy'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
+                        <span style="font-weight:normal; color:#666; font-size:.9em">(<?= count($kontrahentRows) ?> dok.)</span>
+                    </h3>
+                    
+                    <table style="width:100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem; background:#fafafa;">NUMER</th>
+                                <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem; background:#fafafa;">FORMA_PLATNOSCI</th>
+                                <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem; background:#fafafa;">TERMIN_PLAT</th>
+                                <th style="text-align:right; border-bottom:1px solid #ddd; padding:.5rem; background:#fafafa;">POZOSTALO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($kontrahentRows as $r): ?>
+                                <tr>
+                                    <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['NUMER'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
+                                    <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['FORMA_PLATNOSCI'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
+                                    <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['TERMIN_PLAT'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
+                                    <td style="border-bottom:1px solid #f0f0f0; padding:.5rem; text-align:right"><?= htmlspecialchars((string)($r['POZOSTALO'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     <?php endif; ?>
 <?php endif; ?>
 </div>
