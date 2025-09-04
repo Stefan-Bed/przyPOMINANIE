@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Config\AppConfig;
 use App\Security\Crypto;
+use App\Database\Connection;
+use App\Database\DocumentRepository;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -78,7 +80,46 @@ $hasConfig = is_file($secretKeyPath) && is_file($encPath);
     </form>
 <?php else: ?>
     <h2>przyPOMINANIE</h2>
-    <p class="muted">Konfiguracja połączenia zapisana. Wkrótce dodamy logikę pobierania dokumentów.</p>
+    <?php
+        $error = null;
+        $rows = [];
+        try {
+            $pdo = Connection::get();
+            $repo = new DocumentRepository($pdo);
+            $rows = $repo->fetchUnsettledDocuments();
+        } catch (Throwable $e) {
+            $error = $e->getMessage();
+        }
+    ?>
+    <?php if ($error): ?>
+        <p class="muted">Błąd połączenia/zapytania: <?= htmlspecialchars($error, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></p>
+    <?php else: ?>
+        <table style="width:100%; border-collapse: collapse; margin-top:1rem">
+            <thead>
+                <tr>
+                    <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem">KONTRAHENT_NAZWA</th>
+                    <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem">NUMER</th>
+                    <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem">FORMA_PLATNOSCI</th>
+                    <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem">TERMIN_PLAT</th>
+                    <th style="text-align:left; border-bottom:1px solid #ddd; padding:.5rem">POZOSTALO</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($rows as $r): ?>
+                    <tr>
+                        <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['KONTRAHENT_NAZWA'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
+                        <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['NUMER'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
+                        <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['FORMA_PLATNOSCI'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
+                        <td style="border-bottom:1px solid #f0f0f0; padding:.5rem"><?= htmlspecialchars((string)($r['TERMIN_PLAT'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
+                        <td style="border-bottom:1px solid #f0f0f0; padding:.5rem; text-align:right"><?= htmlspecialchars((string)($r['POZOSTALO'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                <?php if (!$rows): ?>
+                    <tr><td colspan="5" class="muted" style="padding:.75rem">Brak wyników.</td></tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
 <?php endif; ?>
 </div>
 </body>
